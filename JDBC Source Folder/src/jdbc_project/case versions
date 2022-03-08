@@ -1,0 +1,299 @@
+old case 2
+case 2: 
+                   {
+                        System.out.print("Enter the Writing Group name: ");
+                        String input = CheckInput.getString();
+
+                        String checkGroupSQL = "Select groupName FROM WritingGroups";
+                        stmt = conn.createStatement();
+                        rs = stmt.executeQuery(checkGroupSQL);
+                        boolean match = false;
+
+                        // Check to see if groupName matches any existing groupNames
+                        while (!match) {
+                            try {
+                                // iterate through existing names and check for match
+                                // if no match is found exception is thrown and process repeats
+                                // if match found while is broken and proceed forward
+                                while (rs.next()) 
+                                {
+                                    String group = rs.getString("groupName");
+                                    if(group.equals(input))
+                                    {
+                                        match = true;
+                                    }
+                                    if (match) 
+                                    {
+                                        break;
+                                    }
+                                }
+                                if(!match)
+                                {
+                                    throw new Exception();
+                                }
+                            } catch (Exception e) {
+                                System.out.println("Error: Group not found. Enter valid group:");
+                                input = in.nextLine();
+
+                                checkGroupSQL = "Select groupName FROM WritingGroups";
+                                stmt = conn.createStatement();
+                                rs = stmt.executeQuery(checkGroupSQL);
+                            }
+                    }
+
+                    //String searchbygroupname = "Select * FROM writinggroups WHERE groupname=?";
+                    String searchbygroupname = "SELECT * FROM WritingGroups INNER JOIN (Books NATURAL JOIN Publishers) USING(GROUPNAME) WHERE GROUPNAME = ?";
+                    preparedStatement = conn.prepareStatement(searchbygroupname);
+                    preparedStatement.setString(1, input);
+                    rs = preparedStatement.executeQuery();
+
+                    String case2Format = "%-25s%-25s%-20s%-10s%-25s%-20s%-20s%-70s%-20s%-40s\n";
+                    System.out.printf(case2Format, "Writing Group", "Head Writer", "Year Formed", "Subject", "Book Title",
+                                      "Year Published", "Number of Pages", "Publisher Address", "Publisher Phone", "Publisher Email");
+
+                    while (rs.next()) {
+                        String groupname = rs.getString("groupname");
+                        String headwriter = rs.getString("headwriter");
+                        String yearformed = String.valueOf(rs.getInt("yearformed"));
+                        String subject = rs.getString("subject");
+                        
+                        String bookTitle = rs.getString("bookTitle");
+                        int yearPublished = rs.getInt("yearPublished");
+                        int numberPages = rs.getInt("numberPages");
+                        String publisherAddress = rs.getString("publisherAddress");
+                        String publisherPhone = rs.getString("publisherPhone");
+                        String publisherEmail = rs.getString("publisherEmail");
+                        
+                        
+                        
+                        System.out.printf(case2Format,
+                                dispNull(groupname), dispNull(headwriter), dispNull(yearformed), dispNull(subject),
+                                dispNull(bookTitle), dispNull(Integer.toString(yearPublished)), dispNull(Integer.toString(numberPages)), 
+                                dispNull(publisherAddress), dispNull(publisherPhone), dispNull(publisherEmail));
+                    }
+                    break;
+                   }//List all the data for a group specified by user//prepared statement
+                    //to do= input validation and action messages.
+
+
+
+
+case 6: {
+                      System.out.println("Select data by Book? Type Book Name");
+                      String input=in.nextLine();
+                      
+                      String checkBookSQL = "Select bookTitle FROM Books";
+                      stmt = conn.createStatement();
+                      rs = stmt.executeQuery(checkBookSQL);
+                      boolean match = false;
+                      
+                      // Check to see if bookTitle matches any existing bookTitles
+                      while (!match) {
+                          try {
+                              // iterate through existing titles and check for match
+                              // if no match is found exception is thrown and process repeats
+                              // if match found while is broken and proceed forward
+                              while (rs.next()) {
+                                  String book = rs.getString("bookTitle");
+                                  if(book.equals(input))
+                                      match = true;
+                                  if (match) {
+                                      break;
+                                  }
+                              }
+                              if(!match)
+                                  throw new Exception();
+                          } catch (Exception e) {
+                              System.out.println("Error: Book title not found. Enter valid title:");
+                              input = in.nextLine();
+                              rs = stmt.executeQuery(checkBookSQL);
+                          }
+                      }
+
+                      // prompts user for the second part of the full key
+                      System.out.println("Enter 1(Writing Group) or 2(Publisher)");
+                      String secondInput; 
+                      int secondKey = CheckInput.getIntRange(1,2);
+                      boolean secondMatch = false;
+                      if(secondKey == 1) {
+                          System.out.println("Enter: Writing group");
+                          secondInput = in.nextLine();
+                          
+                          // get result set from designated query
+                          String checkSecondKey = "SELECT groupName FROM Books NATURAL JOIN WritingGroups where bookTitle = '"
+                                  + input + "' AND GroupName = ?";
+                          preparedStatement = conn.prepareStatement(checkSecondKey);
+                          preparedStatement.setString(1,secondInput);
+                          rs = preparedStatement.executeQuery();
+                          
+                          // iterates through result set to find a matching group name
+                          while(!secondMatch) {
+                              while (rs.next()) {
+                                  String group = rs.getString("groupName");
+                                  if(group.equals(secondInput))
+                                      secondMatch = true;
+                                  if (secondMatch) {
+                                      break;
+                                  }
+                              }
+                              // returns back to menu if no match is found
+                              if(!secondMatch) {
+                                  System.out.println("Failed to enter valid group name. Returning to menu.");
+                                  break;
+                              }
+                          }
+                          
+                          if(!secondMatch) {
+                              break;
+                          }
+                          
+                      } else {
+                          System.out.println("Enter: Publisher");
+                          secondInput = in.nextLine();
+                          
+                          // get result set from designated query
+                          String checkSecondKey = "SELECT groupName FROM Books NATURAL JOIN WritingGroups where bookTitle = '"
+                                  + input + "' AND publisherName = ?";
+                          preparedStatement = conn.prepareStatement(checkSecondKey);
+                          preparedStatement.setString(1,secondInput);
+                          rs = preparedStatement.executeQuery();
+                          
+                          // iterates through result set to find a matching publisher
+                          while(!secondMatch) {
+                              while (rs.next()) {
+                                  String pub = rs.getString("publisherName");
+                                  if(pub.equals(secondInput))
+                                      secondMatch = true;
+                                  if (secondMatch) {
+                                      break;
+                                  }
+                              }
+                              
+                              // returns back to menu if no match is found
+                              if(!secondMatch) {
+                                  System.out.println("Failed to enter valid publisher name. Returning to menu.");
+                                  break;
+                              }
+                          }
+                          
+                          if(!secondMatch) {
+                              break;
+                          }
+                      }
+
+                      String searchbygroupname = "Select * FROM Books WHERE bookTitle=?";
+                      preparedStatement = conn.prepareStatement(searchbygroupname);
+                      preparedStatement.setString(1,input);
+                      rs=preparedStatement.executeQuery();
+                     
+                      while(rs.next()){
+                           String bookTitle = rs.getString("bookTitle");
+                           String groupname= rs.getString("groupname");
+                           String publishername=rs.getString("publishername");
+                           String yearpublished=String.valueOf(rs.getInt("yearpublished"));
+                           String numberpages=String.valueOf(rs.getInt("numberpages"));
+            
+                              String displayFormat1="%-25s%-25s%-25s%-10s%-10s\n";
+                              System.out.printf(displayFormat1,
+                              dispNull(bookTitle), dispNull(groupname), dispNull(publishername), dispNull(yearpublished), dispNull(numberpages));
+                      }
+                      break;
+                    }
+                    //List all the data for a single book specified by the user//prepared statment
+                    //to do= input validation and action messages.
+
+// my own version
+case 8: 
+                    {
+                        // prompts user for the second part of the full key
+                        System.out.println("Enter 1(Insert new publisher) or 2(Modify publisher)");
+                        String secondInput; 
+                        int option = CheckInput.getIntRange(1,2);
+                        boolean secondMatch = false;
+                        if(option == 1) 
+                        {
+                            
+                            
+                            /* //same as before i modified case 8 - sam
+                            System.out.println("Which Publisher would you like to add");
+                            String name=in.nextLine();
+                            String Address=in.nextLine();
+                            int phone=in.nextInt();// check for atleast 10 numbers 
+                            int email=in.nextInt();//check for @ and .com at the end 
+
+                            String insertPublisher= "insert into publishers(publishername,publisheraddress,publisherphone,publisherEmail) values(?,?,?,?)";
+
+                            preparedStatement = conn.prepareStatement(insertPublisher);
+                            preparedStatement.setString(1,name);
+                            preparedStatement.setString(2,Address);
+                            preparedStatement.setInt(3,phone);
+                            preparedStatement.setInt(4,email);
+
+                            int row=preparedStatement.executeUpdate();*/
+                            
+                            
+                        } 
+                        else // option 2 (modify publisher)
+                        {
+                            System.out.print("Enter the existing publisher name you want to modify: ");
+                            String oldPublisher = CheckInput.getString();
+                            
+                            // Check to see if bookTitle matches any existing bookTitles
+                            String checkPublisherSQL = "SELECT publisherName FROM Publishers";
+                            stmt = conn.createStatement();
+                            rs = stmt.executeQuery(checkPublisherSQL);
+                            boolean match = false;
+                            while (!match) 
+                            {
+                                try {
+                                    // iterate through existing publishers and check for match
+                                    // if no match is found exception is thrown and process repeats
+                                    // if match found while is broken and proceed forward
+                                    while (rs.next()) 
+                                    {
+                                        String book = rs.getString("publisherName");
+                                        if(book.equals(oldPublisher))
+                                        {
+                                            match = true;
+                                        }
+                                        if (match) 
+                                        {
+                                            break;
+                                        }
+                                    }
+                                    if(!match)
+                                        throw new Exception();
+                                } catch (Exception e) 
+                                {
+                                    System.out.println("Error: Publisher not found. Enter existing publisher:");
+                                    oldPublisher = in.nextLine();
+                                    rs = stmt.executeQuery(checkPublisherSQL);
+                                }
+                            }
+
+
+                            System.out.print("Enter new publisher name: ");
+                            String newPublisher = CheckInput.getString();
+                            String sql = "UPDATE Books SET publisherName = ? WHERE publisherName = ?";
+
+                            try
+                            {
+                                preparedStatement = conn.prepareStatement(sql);
+                                preparedStatement.setString(1, newPublisher);
+                                preparedStatement.setString(2, oldPublisher);
+                                preparedStatement.executeUpdate();
+                            }
+                            catch (SQLException e)
+                            {
+                                System.out.println(e.getMessage());
+                            }
+
+                        }
+                        
+                        
+
+
+                      break;
+                    }//Insert a new publisher// prepared statemd
+                    //to do= input validation and action messages.
+                    //double check outputs
